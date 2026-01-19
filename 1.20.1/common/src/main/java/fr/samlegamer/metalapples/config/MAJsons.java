@@ -9,7 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -49,13 +48,29 @@ public class MAJsons
 
     public void makeVanillaJsons()
     {
-        mkFile("copper_apple", 1, 0.3F, true, new MobEffectInstance(MobEffects.DIG_SPEED, 100, 0));
-        mkFile("iron_apple", 2, 0.6F, true, new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 0));
+        mkFile("copper_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.DIG_SPEED, 600, 0));
+        mkFile("iron_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1600, 0));
+        mkFile("lapis_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.NIGHT_VISION, 2000, 0));
+        mkFile("redstone_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2600, 0));
+        mkFile("diamond_apple", 10, 1.2F, false,
+                new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 1800, 1),     // 90s, Speed II (durée x1.5)
+                new MobEffectInstance(MobEffects.ABSORPTION, 1800, 2),         // 90s, Absorption III
+                new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1800, 0), // 90s, Resistance I
+                new MobEffectInstance(MobEffects.REGENERATION, 300, 2),       // 15s, Regeneration III (légère hausse)
+                new MobEffectInstance(MobEffects.DIG_SPEED, 1800, 1)          // 90s, Haste II
+        );
+        mkFile("netherite_apple", 12, 1.4F, false,
+                new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 1800, 4),     // 90s, Speed II (durée x1.5)
+                new MobEffectInstance(MobEffects.ABSORPTION, 1800, 3),         // 90s, Absorption III
+                new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1800, 0), // 90s, Resistance I
+                new MobEffectInstance(MobEffects.REGENERATION, 300, 3),       // 15s, Regeneration III (légère hausse)
+                new MobEffectInstance(MobEffects.DIG_SPEED, 1800, 2),          // 90s, Haste II
+                new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 4000, 0));
     }
 
     private void mkFile(String apple, int nutrition, float saturationMod, boolean alwaysEat, MobEffectInstance... effects) {
 
-        if(Files.exists(configDirMA) && Files.notExists(configDirMAVanilla))
+        if(Files.exists(configDirMA) && Files.exists(configDirMAVanilla))
         {
             try {
                 BufferedWriter fileWriter = Files.newBufferedWriter(configDirMAVanilla.resolve(apple+".json"));
@@ -87,14 +102,15 @@ public class MAJsons
 
     public static MAApple loadApple(String configDir, String apple)
     {
-        Path apple_json = Path.of(configDir, MetalApple.MODID, apple+".json");
+        Path apple_json = Path.of(configDir, apple+".json");
+        MetalApple.LOGGER.info("Trying to load apple from: {}", apple_json.toAbsolutePath());
         if(Files.exists(apple_json))
         {
+            MetalApple.LOGGER.info("Apple file exists, loading: {}", apple);
             try {
                 BufferedReader fileReader = Files.newBufferedReader(apple_json);
                 try(JsonReader reader = new JsonReader(fileReader)){
                     reader.beginObject();
-                    String appleName = apple;
                     int nutrition = 0;
                     float saturationMod = 0.0F;
                     boolean alwaysEat = false;
@@ -115,26 +131,32 @@ public class MAJsons
                                 alwaysEat = reader.nextBoolean();
                                 break;
                             case "effects":
-                                reader.beginObject();
-                                String nameEff = "";
-                                int duration = 0;
-                                int amplifier = 0;
+                                reader.beginArray();
                                 while (reader.hasNext())
                                 {
-                                    switch (reader.nextName())
+                                    reader.beginObject();
+                                    String nameEff = "";
+                                    int duration = 0;
+                                    int amplifier = 0;
+                                    while (reader.hasNext())
                                     {
-                                        case "nameEff":
-                                            nameEff = reader.nextString();
-                                            break;
-                                        case "duration":
-                                            duration = reader.nextInt();
-                                            break;
-                                        case "amplifier":
-                                            amplifier = reader.nextInt();
-                                            break;
+                                        switch (reader.nextName())
+                                        {
+                                            case "nameEff":
+                                                nameEff = reader.nextString();
+                                                break;
+                                            case "duration":
+                                                duration = reader.nextInt();
+                                                break;
+                                            case "amplifier":
+                                                amplifier = reader.nextInt();
+                                                break;
+                                        }
                                     }
+                                    reader.endObject();
                                     effects.add(new MobEffectInstance(getEffect(nameEff), duration, amplifier));
                                 }
+                                reader.endArray();
                                 break;
                             default:
                                 reader.skipValue();
@@ -149,7 +171,15 @@ public class MAJsons
                         tabOfEffect[i] = effects.get(i);
                     }
 
-                    return new MAApple(appleName, nutrition, saturationMod, alwaysEat, tabOfEffect);
+                    MetalApple.LOGGER.info("Loaded apple '{}' with {} effect(s)", apple, tabOfEffect.length);
+                    for(MobEffectInstance effect : tabOfEffect) {
+                        MetalApple.LOGGER.info("  - Effect: {}, Duration: {}, Amplifier: {}",
+                            BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect()),
+                            effect.getDuration(),
+                            effect.getAmplifier());
+                    }
+
+                    return new MAApple(apple, nutrition, saturationMod, alwaysEat, tabOfEffect);
                 }
             }catch (IOException e)
             {

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:apple"
+    },
+    "B": {
+      "item": "minecraft:iron_block"
+    },
+    "D": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "DBD",
+    "BAB",
+    "DBD"
+  ],
+  "result": {
+    "item": "metalapples:iron_apple"
+  },
+  "show_notification": true
+}

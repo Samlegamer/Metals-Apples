@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "minecraft:netherite_ingot"
+  },
+  "base": {
+    "item": "metalapples:diamond_apple"
+  },
+  "result": {
+    "item": "metalapples:netherite_apple"
+  },
+  "template": []
+}
