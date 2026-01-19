@@ -16,6 +16,7 @@ public class MALang
         lang.put(getItemByName("redstone_apple"), "Redstone Apple");
         lang.put(getItemByName("diamond_apple"), "Diamond Apple");
         lang.put(getItemByName("netherite_apple"), "Netherite Apple");
+        lang.put(getItemByName("emerald_apple"), "Emerald Apple");
         return lang;
     }
 
@@ -28,6 +29,7 @@ public class MALang
         lang.put(getItemByName("redstone_apple"), "Pomme en redstone");
         lang.put(getItemByName("diamond_apple"), "Pomme en diamant");
         lang.put(getItemByName("netherite_apple"), "Pomme en netherite");
+        lang.put(getItemByName("emerald_apple"), "Pomme en émeraude");
         return lang;
     }
 }

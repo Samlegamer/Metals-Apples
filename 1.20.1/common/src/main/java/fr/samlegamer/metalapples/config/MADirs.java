@@ -9,7 +9,6 @@ public record MADirs(Path configDir) {
 
     public void addDirs() {
         if (Files.exists(configDir)) {
-            MetalApple.LOGGER.info("Creating config directory for Metal Apples !");
             try {
                 Path ma_cfg = Paths.get(configDir.toString(), MetalApple.MODID);
                 Path ma_cfg_vanilla = Paths.get(configDir.toString(), MetalApple.MODID, "vanilla");

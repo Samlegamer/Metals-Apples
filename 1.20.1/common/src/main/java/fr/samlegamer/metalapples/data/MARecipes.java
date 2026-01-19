@@ -19,7 +19,7 @@ public class MARecipes extends RecipeProvider
     }
 
     @Override
-    protected void buildRecipes(Consumer<FinishedRecipe> consumer) {
+    public void buildRecipes(Consumer<FinishedRecipe> consumer) {
         makeAppleRecipe(consumer, "copper_apple", Blocks.WAXED_COPPER_BLOCK, Items.COPPER_INGOT);
         makeAppleRecipe(consumer, "iron_apple", Blocks.IRON_BLOCK, Items.IRON_INGOT);
         makeAppleRecipe(consumer, "lapis_apple", Blocks.LAPIS_BLOCK, Items.LAPIS_LAZULI);

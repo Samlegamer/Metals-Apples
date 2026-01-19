@@ -35,45 +35,32 @@ import java.util.concurrent.CompletableFuture;
 public class MetalAppleForge {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MetalApple.MODID);
 
+    public MetalAppleForge() {
+        MetalApple.LOGGER.info("Loading Metal Apples Forge mod");
+        MetalApple.buildConfig(FMLPaths.CONFIGDIR.get());
+        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        ITEMS.register(bus);
+        registerItems();
+        bus.addListener(this::gatherData);
+        bus.addListener(this::addToTab);
+        MetalApple.LOGGER.info("Finish loading Metal Apples Forge mod");
+    }
+
     public void registerItems() {
         String configDir = FMLPaths.CONFIGDIR.get().toString();
 
-        // Charger les configurations MAApple
         Map<String, MAApple> mapVanilla = MAItemsRegistry.getVanillaAppleConfigs(configDir);
         Map<String, MAApple> mapModded = MAItemsRegistry.getModdedAppleConfigs(configDir);
 
-        // Enregistrer les items vanilla avec des Suppliers
         for(Map.Entry<String, MAApple> entry : mapVanilla.entrySet()) {
             MAApple appleConfig = entry.getValue();
             ITEMS.register(entry.getKey(), () -> new Item(new Item.Properties().food(MAItemsRegistry.createFoodProperties(appleConfig))));
         }
 
-        // Enregistrer les items moddés avec des Suppliers
         for(Map.Entry<String, MAApple> entry : mapModded.entrySet()) {
             MAApple appleConfig = entry.getValue();
             ITEMS.register(entry.getKey(), () -> new Item(new Item.Properties().food(MAItemsRegistry.createFoodProperties(appleConfig))));
         }
-    }
-
-    public MetalAppleForge() {
-        MetalApple.LOGGER.info("Loading Metal Apple Forge mod");
-
-        // Initialiser les dossiers et fichiers de configuration
-        MADirs maDirs = new MADirs(FMLPaths.CONFIGDIR.get());
-        maDirs.addDirs();
-        MAJsons maJsons = new MAJsons(FMLPaths.CONFIGDIR.get());
-        maJsons.makeVanillaJsons();
-
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        // Enregistrer les DeferredRegister AVANT d'enregistrer les objets
-        ITEMS.register(bus);
-
-        // Enregistrer les effets et items
-        registerItems();
-
-        bus.addListener(this::gatherData);
-        bus.addListener(this::addToTab);
-        MetalApple.LOGGER.info("Finish loading Metal Apple Forge mod");
     }
 
     private void addToTab(BuildCreativeModeTabContentsEvent event)
@@ -105,7 +92,7 @@ public class MetalAppleForge {
                     tag(MATags.TAG_METAL_APPLES).add(MATags.getMetalAppleItems());
                 }
             });
-            generator.addProvider(true, new MARecipes(output));
+            //generator.addProvider(true, new MARecipes(output));
         }
 
         if (event.includeClient()) {

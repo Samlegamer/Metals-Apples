@@ -48,54 +48,56 @@ public class MAJsons
 
     public void makeVanillaJsons()
     {
-        mkFile("copper_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.DIG_SPEED, 600, 0));
-        mkFile("iron_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1600, 0));
-        mkFile("lapis_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.NIGHT_VISION, 2000, 0));
-        mkFile("redstone_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2600, 0));
-        mkFile("diamond_apple", 10, 1.2F, false,
-                new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 1800, 1),     // 90s, Speed II (durée x1.5)
-                new MobEffectInstance(MobEffects.ABSORPTION, 1800, 2),         // 90s, Absorption III
-                new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1800, 0), // 90s, Resistance I
-                new MobEffectInstance(MobEffects.REGENERATION, 300, 2),       // 15s, Regeneration III (légère hausse)
-                new MobEffectInstance(MobEffects.DIG_SPEED, 1800, 1)          // 90s, Haste II
+        mkFile(configDirMAVanilla, "copper_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.DIG_SPEED, 600, 0));
+        mkFile(configDirMAVanilla, "iron_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1600, 0));
+        mkFile(configDirMAVanilla, "lapis_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.NIGHT_VISION, 2000, 0));
+        mkFile(configDirMAVanilla, "redstone_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2600, 0));
+        mkFile(configDirMAVanilla, "diamond_apple", 10, 1.2F, true,
+                new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 1800, 1),
+                new MobEffectInstance(MobEffects.ABSORPTION, 1800, 2),
+                new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1800, 0),
+                new MobEffectInstance(MobEffects.REGENERATION, 300, 2),
+                new MobEffectInstance(MobEffects.DIG_SPEED, 1800, 1)
         );
-        mkFile("netherite_apple", 12, 1.4F, false,
+        mkFile(configDirMAVanilla, "netherite_apple", 12, 1.4F, true,
                 new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 1800, 4),     // 90s, Speed II (durée x1.5)
                 new MobEffectInstance(MobEffects.ABSORPTION, 1800, 3),         // 90s, Absorption III
                 new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1800, 0), // 90s, Resistance I
                 new MobEffectInstance(MobEffects.REGENERATION, 300, 3),       // 15s, Regeneration III (légère hausse)
                 new MobEffectInstance(MobEffects.DIG_SPEED, 1800, 2),          // 90s, Haste II
                 new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 4000, 0));
+        mkFile(configDirMACustom, "emerald_apple", 4, 1.2F, true, new MobEffectInstance(MobEffects.HERO_OF_THE_VILLAGE, 1000, 0));
     }
 
-    private void mkFile(String apple, int nutrition, float saturationMod, boolean alwaysEat, MobEffectInstance... effects) {
+    private void mkFile(Path path, String apple, int nutrition, float saturationMod, boolean alwaysEat, MobEffectInstance... effects) {
 
-        if(Files.exists(configDirMA) && Files.exists(configDirMAVanilla))
+        if(Files.exists(configDirMA) && Files.exists(configDirMAVanilla) && Files.isDirectory(configDirMACustom))
         {
-            try {
-                BufferedWriter fileWriter = Files.newBufferedWriter(configDirMAVanilla.resolve(apple+".json"));
-                try(JsonWriter writer = new JsonWriter(fileWriter)){
-                    writer.beginObject();
-                    writer.name("nutrition").value(nutrition);
-                    writer.name("saturationMod").value(saturationMod);
-                    writer.name("alwaysEat").value(alwaysEat);
-
-                    writer.name("effects");
-                    writer.beginArray();
-                    for (MobEffectInstance effect : effects) {
+            if(!Files.exists(path.resolve(apple+".json"))) {
+                try {
+                    BufferedWriter fileWriter = Files.newBufferedWriter(path.resolve(apple + ".json"));
+                    try (JsonWriter writer = new JsonWriter(fileWriter)) {
+                        writer.setIndent("  ");
                         writer.beginObject();
-                        writer.name("nameEff").value(Objects.requireNonNull(BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect())).toString());
-                        writer.name("duration").value(effect.getDuration());
-                        writer.name("amplifier").value(effect.getAmplifier());
+                        writer.name("nutrition").value(nutrition);
+                        writer.name("saturationMod").value(saturationMod);
+                        writer.name("alwaysEat").value(alwaysEat);
+
+                        writer.name("effects");
+                        writer.beginArray();
+                        for (MobEffectInstance effect : effects) {
+                            writer.beginObject();
+                            writer.name("nameEff").value(Objects.requireNonNull(BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect())).toString());
+                            writer.name("duration").value(effect.getDuration());
+                            writer.name("amplifier").value(effect.getAmplifier());
+                            writer.endObject();
+                        }
+                        writer.endArray();
                         writer.endObject();
                     }
-                    writer.endArray();
-
-                    writer.endObject();
+                } catch (IOException e) {
+                    MetalApple.LOGGER.error(e);
                 }
-            }catch (IOException e)
-            {
-                MetalApple.LOGGER.error(e);
             }
         }
     }
@@ -103,10 +105,8 @@ public class MAJsons
     public static MAApple loadApple(String configDir, String apple)
     {
         Path apple_json = Path.of(configDir, apple+".json");
-        MetalApple.LOGGER.info("Trying to load apple from: {}", apple_json.toAbsolutePath());
         if(Files.exists(apple_json))
         {
-            MetalApple.LOGGER.info("Apple file exists, loading: {}", apple);
             try {
                 BufferedReader fileReader = Files.newBufferedReader(apple_json);
                 try(JsonReader reader = new JsonReader(fileReader)){
@@ -169,14 +169,6 @@ public class MAJsons
                     for(int i = 0; i < effects.size(); i++)
                     {
                         tabOfEffect[i] = effects.get(i);
-                    }
-
-                    MetalApple.LOGGER.info("Loaded apple '{}' with {} effect(s)", apple, tabOfEffect.length);
-                    for(MobEffectInstance effect : tabOfEffect) {
-                        MetalApple.LOGGER.info("  - Effect: {}, Duration: {}, Amplifier: {}",
-                            BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect()),
-                            effect.getDuration(),
-                            effect.getAmplifier());
                     }
 
                     return new MAApple(apple, nutrition, saturationMod, alwaysEat, tabOfEffect);

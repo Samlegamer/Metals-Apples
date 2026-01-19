@@ -17,6 +17,7 @@ public class MAModels
         models.add(getItemByName("redstone_apple"));
         models.add(getItemByName("diamond_apple"));
         models.add(getItemByName("netherite_apple"));
+        models.add(getItemByName("emerald_apple"));
         return models;
     }
 }
