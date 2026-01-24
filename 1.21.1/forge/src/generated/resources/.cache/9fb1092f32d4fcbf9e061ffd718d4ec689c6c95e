@@ -1,0 +1,13 @@
+// 1.21.1	2026-01-24T11:56:51.7292236	Recipes
+1fa62d2d632518154808b088730750b5f6da468a data/metalapples/advancement/recipes/food/copper_apple.json
+47e5bc26f7a305a78aeaa44e419b87117bdb74fc data/metalapples/advancement/recipes/food/diamond_apple.json
+dee9de8447e7c8b43c99becad86cad6704c7a771 data/metalapples/advancement/recipes/food/iron_apple.json
+e0db6d51a5923eb475a0637b39d6e0a2380bf362 data/metalapples/advancement/recipes/food/lapis_apple.json
+8bca37ec7d8876aa6625dd530a7762728cbf6b2a data/metalapples/advancement/recipes/food/netherite_apple.json
+6713c148443a0ed14c53cb300c46d7bf08d5929c data/metalapples/advancement/recipes/food/redstone_apple.json
+419dbf5fe7298f3b355b46e0c2f6c77cc28afd6b data/metalapples/recipe/copper_apple.json
+e67b79ff474cb6a9045e212705a1a276cd6f402a data/metalapples/recipe/diamond_apple.json
+bed8f92fb9e92be4025af4e8dc0c5a467d72c71f data/metalapples/recipe/iron_apple.json
+2ba71350f9cef63dd00ae660dccd7454ccf272be data/metalapples/recipe/lapis_apple.json
+61638f501337e080dd2293c83bde3dca2aa86ba7 data/metalapples/recipe/netherite_apple.json
+5680142c8dc9bd753826aada159448ad4cdacb94 data/metalapples/recipe/redstone_apple.json

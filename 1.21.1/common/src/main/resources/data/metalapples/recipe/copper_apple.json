@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:apple"
+    },
+    "B": {
+      "item": "minecraft:waxed_copper_block"
+    },
+    "D": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "pattern": [
+    "DBD",
+    "BAB",
+    "DBD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "metalapples:copper_apple"
+  }
+}
