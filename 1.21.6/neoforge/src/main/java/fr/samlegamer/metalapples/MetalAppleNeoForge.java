@@ -35,13 +35,13 @@ public class MetalAppleNeoForge {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MetalApple.MODID);
 
     public MetalAppleNeoForge(IEventBus bus) {
-        MetalApple.LOGGER.info("Loading Metal Apples Forge mod");
+        MetalApple.LOGGER.info("Loading Metal Apples NeoForge mod");
         MetalApple.buildConfig(FMLPaths.CONFIGDIR.get());
         ITEMS.register(bus);
         registerItems();
         bus.addListener(this::gatherData);
         bus.addListener(this::addToTab);
-        MetalApple.LOGGER.info("Finish loading Metal Apples Forge mod");
+        MetalApple.LOGGER.info("Finish loading Metal Apples NeoForge mod");
     }
 
     public void registerItems() {

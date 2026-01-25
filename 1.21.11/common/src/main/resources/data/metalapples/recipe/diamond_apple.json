@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:apple",
+    "B": "minecraft:diamond_block",
+    "D": "minecraft:diamond"
+  },
+  "pattern": [
+    "DBD",
+    "BAB",
+    "DBD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "metalapples:diamond_apple"
+  }
+}

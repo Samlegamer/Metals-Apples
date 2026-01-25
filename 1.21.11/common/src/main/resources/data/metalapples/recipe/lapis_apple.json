@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:apple",
+    "B": "minecraft:lapis_block",
+    "D": "minecraft:lapis_lazuli"
+  },
+  "pattern": [
+    "DBD",
+    "BAB",
+    "DBD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "metalapples:lapis_apple"
+  }
+}

@@ -6,24 +6,26 @@ import fr.samlegamer.metalapples.data.MARecipes;
 import fr.samlegamer.metalapples.data.MATags;
 import fr.samlegamer.metalapples.item.MAApple;
 import fr.samlegamer.metalapples.item.MAItemsRegistry;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.ModelProvider;
+import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
-import net.neoforged.neoforge.common.data.BlockTagsProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ItemTagsProvider;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -49,12 +51,12 @@ public class MetalAppleNeoForge {
 
         for(Map.Entry<String, MAApple> entry : mapVanilla.entrySet()) {
             MAApple appleConfig = entry.getValue();
-            ITEMS.register(entry.getKey(), () -> new Item(new Item.Properties().food(MAItemsRegistry.createFoodProperties(appleConfig))));
+            ITEMS.register(entry.getKey(), rl -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, rl)).food(MAItemsRegistry.createFoodProperties(appleConfig), MAItemsRegistry.createConsumable(appleConfig))));
         }
 
         for(Map.Entry<String, MAApple> entry : mapModded.entrySet()) {
             MAApple appleConfig = entry.getValue();
-            ITEMS.register(entry.getKey(), () -> new Item(new Item.Properties().food(MAItemsRegistry.createFoodProperties(appleConfig))));
+            ITEMS.register(entry.getKey(), rl -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, rl)).food(MAItemsRegistry.createFoodProperties(appleConfig), MAItemsRegistry.createConsumable(appleConfig))));
         }
     }
 
@@ -67,55 +69,41 @@ public class MetalAppleNeoForge {
         }
     }
 
-    private void gatherData(GatherDataEvent event) {
+    private void gatherData(GatherDataEvent.Client event) {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
-        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
 
-        if (event.includeServer()) {
-            BlockTagsProvider blockTagsProvider = new BlockTagsProvider(output, lookupProvider, MetalApple.MODID, existingFileHelper) {
-                @Override
-                protected void addTags(HolderLookup.@NonNull Provider provider) {
-
+        generator.addProvider(true, new MARecipes.Generator(output, lookupProvider));
+        generator.addProvider(true, new ItemTagsProvider(output, lookupProvider, MetalApple.MODID) {
+            @Override
+            public void addTags(HolderLookup.Provider provider) {
+                tag(MATags.TAG_METAL_APPLES).add(MATags.getMetalAppleItems());
+            }
+        });
+        generator.addProvider(true, new ModelProvider(output, MetalApple.MODID) {
+            @Override
+            protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+                for(Item item : MAModels.getModels()) {
+                    itemModels.generateFlatItem(item, ModelTemplates.FLAT_ITEM);
                 }
-            };
-            generator.addProvider(true, blockTagsProvider);
-            generator.addProvider(true, new ItemTagsProvider(output, lookupProvider, blockTagsProvider.contentsGetter(), MetalApple.MODID, existingFileHelper) {
-                @Override
-                public void addTags(HolderLookup.@NonNull Provider provider) {
-                    tag(MATags.TAG_METAL_APPLES).add(MATags.getMetalAppleItems());
+            }
+        });
+        generator.addProvider(true, new LanguageProvider(output, MetalApple.MODID, "en_us") {
+            @Override
+            protected void addTranslations() {
+                for(Map.Entry<Item, String> entry : MALang.getLangEnUS().entrySet()) {
+                    this.add(entry.getKey(), entry.getValue());
                 }
-            });
-            generator.addProvider(true, new MARecipes(output, lookupProvider));
-        }
-
-        if (event.includeClient()) {
-            generator.addProvider(true, new ItemModelProvider(output, MetalApple.MODID, existingFileHelper) {
-                @Override
-                protected void registerModels() {
-                    for(Item item : MAModels.getModels())
-                    {
-                        basicItem(item);
-                    }
+            }
+        });
+        generator.addProvider(true, new LanguageProvider(output, MetalApple.MODID, "fr_fr") {
+            @Override
+            protected void addTranslations() {
+                for(Map.Entry<Item, String> entry : MALang.getLangFrFR().entrySet()) {
+                    this.add(entry.getKey(), entry.getValue());
                 }
-            });
-            generator.addProvider(true, new LanguageProvider(output, MetalApple.MODID, "en_us") {
-                @Override
-                protected void addTranslations() {
-                    for(Map.Entry<Item, String> entry : MALang.getLangEnUS().entrySet()) {
-                        this.add(entry.getKey(), entry.getValue());
-                    }
-                }
-            });
-            generator.addProvider(true, new LanguageProvider(output, MetalApple.MODID, "fr_fr") {
-                @Override
-                protected void addTranslations() {
-                    for(Map.Entry<Item, String> entry : MALang.getLangFrFR().entrySet()) {
-                        this.add(entry.getKey(), entry.getValue());
-                    }
-                }
-            });
-        }
+            }
+        });
     }
 }

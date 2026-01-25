@@ -1,7 +1,6 @@
 package fr.samlegamer.metalapples;
 
 import fr.samlegamer.metalapples.client.MALang;
-import fr.samlegamer.metalapples.client.MAModels;
 import fr.samlegamer.metalapples.data.MARecipes;
 import fr.samlegamer.metalapples.data.MATags;
 import fr.samlegamer.metalapples.item.MAApple;
@@ -10,35 +9,35 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
+import net.minecraft.data.tags.VanillaItemTagsProvider;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
-import net.neoforged.neoforge.common.data.BlockTagsProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
-import net.neoforged.neoforge.common.data.LanguageProvider;
-import net.neoforged.neoforge.data.event.GatherDataEvent;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.common.data.LanguageProvider;
+import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Mod(MetalApple.MODID)
-public class MetalAppleNeoForge {
-    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MetalApple.MODID);
+public class MetalAppleForge {
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MetalApple.MODID);
 
-    public MetalAppleNeoForge(IEventBus bus) {
-        MetalApple.LOGGER.info("Loading Metal Apples NeoForge mod");
+    public MetalAppleForge(FMLJavaModLoadingContext context) {
+        MetalApple.LOGGER.info("Loading Metal Apples Forge mod");
         MetalApple.buildConfig(FMLPaths.CONFIGDIR.get());
+        BusGroup bus = context.getModBusGroup();
         ITEMS.register(bus);
         registerItems();
-        bus.addListener(this::gatherData);
-        bus.addListener(this::addToTab);
-        MetalApple.LOGGER.info("Finish loading Metal Apples NeoForge mod");
+        GatherDataEvent.getBus(bus).addListener(this::gatherData);
+        BuildCreativeModeTabContentsEvent.BUS.addListener(this::addToTab);
+        MetalApple.LOGGER.info("Finish loading Metal Apples Forge mod");
     }
 
     public void registerItems() {
@@ -49,12 +48,14 @@ public class MetalAppleNeoForge {
 
         for(Map.Entry<String, MAApple> entry : mapVanilla.entrySet()) {
             MAApple appleConfig = entry.getValue();
-            ITEMS.register(entry.getKey(), () -> new Item(new Item.Properties().food(MAItemsRegistry.createFoodProperties(appleConfig))));
+            String name = entry.getKey();
+            ITEMS.register(name, () -> new Item(new Item.Properties().setId(ITEMS.key(name)).food(MAItemsRegistry.createFoodProperties(appleConfig), MAItemsRegistry.createConsumable(appleConfig))));
         }
 
         for(Map.Entry<String, MAApple> entry : mapModded.entrySet()) {
             MAApple appleConfig = entry.getValue();
-            ITEMS.register(entry.getKey(), () -> new Item(new Item.Properties().food(MAItemsRegistry.createFoodProperties(appleConfig))));
+            String name = entry.getKey();
+            ITEMS.register(name, () -> new Item(new Item.Properties().setId(ITEMS.key(name)).food(MAItemsRegistry.createFoodProperties(appleConfig), MAItemsRegistry.createConsumable(appleConfig))));
         }
     }
 
@@ -74,32 +75,31 @@ public class MetalAppleNeoForge {
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
 
         if (event.includeServer()) {
-            BlockTagsProvider blockTagsProvider = new BlockTagsProvider(output, lookupProvider, MetalApple.MODID, existingFileHelper) {
+            generator.addProvider(true, new VanillaItemTagsProvider(output, lookupProvider, MetalApple.MODID, existingFileHelper) {
                 @Override
-                protected void addTags(HolderLookup.@NonNull Provider provider) {
-
-                }
-            };
-            generator.addProvider(true, blockTagsProvider);
-            generator.addProvider(true, new ItemTagsProvider(output, lookupProvider, blockTagsProvider.contentsGetter(), MetalApple.MODID, existingFileHelper) {
-                @Override
-                public void addTags(HolderLookup.@NonNull Provider provider) {
+                public void addTags(HolderLookup.Provider provider) {
                     tag(MATags.TAG_METAL_APPLES).add(MATags.getMetalAppleItems());
                 }
             });
-            generator.addProvider(true, new MARecipes(output, lookupProvider));
+            generator.addProvider(true, new MARecipes.Generator(output, lookupProvider));
         }
 
         if (event.includeClient()) {
-            generator.addProvider(true, new ItemModelProvider(output, MetalApple.MODID, existingFileHelper) {
-                @Override
-                protected void registerModels() {
-                    for(Item item : MAModels.getModels())
-                    {
-                        basicItem(item);
-                    }
-                }
-            });
+//            generator.addProvider(true, new ModelProvider(output) {
+//
+//                @Override
+//                protected ItemModelGenerators getItemModelGenerators(ItemInfoCollector items, SimpleModelCollector models) {
+//                    return new ItemModelGenerators(items, models) {
+//                        @Override
+//                        public void run() {
+//                            for(Item item : MAModels.getModels()) {
+//                                this.generateFlatItem(item, ModelTemplates.FLAT_ITEM);
+//                            }
+//                        }
+//                    };
+//                }
+//            });
+
             generator.addProvider(true, new LanguageProvider(output, MetalApple.MODID, "en_us") {
                 @Override
                 protected void addTranslations() {
